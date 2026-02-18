@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
- 
+
 void error(std::string message){ throw std::runtime_error(message); }
 void executeBash(std::string command){ std::system(command.c_str()); }
 const int MAX_X = 20, MAX_Y = 20;
@@ -25,12 +25,12 @@ const std::vector<std::string> ANIMALS = [](){
 		executeBash("cowsay -l > " + fName);
 		std::vector<std::string> animals; std::string animal; char c; bool firstLine = true;
 		while((c = fgetc(fptr)) != EOF){
-			if (!firstLine){ 
-				if (c == ' ' || c == '\n'){ 
-					animals.push_back(animal); 
-					animal = ""; 
+			if (!firstLine){
+				if (c == ' ' || c == '\n'){
+					animals.push_back(animal);
+					animal = "";
 				} else animal += c;
-			} 
+			}
 			else if (c == '\n') firstLine = false;
 		}
 
@@ -44,7 +44,7 @@ const std::vector<std::string> ANIMALS = [](){
 }();
 
 class Creature{
-public: 
+public:
 	std::string type;
 	void says(const std::string message, const int fps = FPS){
 		/*  'cow' isn't a valid <paramether> for cowsay */
@@ -58,7 +58,7 @@ public:
 Creature createCreature(std::string type){
 	/* 'type' must belong to ANIMALS */
 	for(std::string animal : ANIMALS)
-	if(type == animal) { 
+	if(type == animal) {
 		Creature someone; someone.type = type;
 		return someone;
 	};
@@ -73,12 +73,16 @@ class Paddle{
 	}
 };
 
+
+
+//int main void
+
 int main(){
 	try{
 		/* Program */
 		Creature Molly = createCreature("cow");
 		Creature Bob = createCreature("dragon");
-		
+
 		/* SCENE: Molly and Bob greet */
 		Molly.says("Good morning");
 		Bob.says("I will kill you!");
