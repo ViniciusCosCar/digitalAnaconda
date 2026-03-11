@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
+ 
 void error(std::string message){ throw std::runtime_error(message); }
 void runBash(std::string command){ std::system(command.c_str()); }
 
@@ -20,19 +20,18 @@ const std::vector<std::string> ANIMALS = [](){
 		runBash("touch " + fName);
 
 		/* Create pointer to file */
-		FILE *fptr = std::fopen(fName.c_str(), "r"); 
-		if (fptr == NULL) error("Couldn't open " + fName + ".txt");
+		FILE *fptr = std::fopen(fName.c_str(), "r"); if (fptr == NULL) error("Couldn't open " + fName + ".txt");
 
 		/* Create vector 'animals' containing each type of character allowed in 'cowsay' */
 		runBash("cowsay -l > " + fName);
 		std::vector<std::string> animals; std::string animal; char c; bool firstLine = true;
 		while((c = fgetc(fptr)) != EOF){
-			if (!firstLine){
-				if (c == ' ' || c == '\n'){
-					animals.push_back(animal);
-					animal = "";
+			if (!firstLine){ 
+				if (c == ' ' || c == '\n'){ 
+					animals.push_back(animal); 
+					animal = ""; 
 				} else animal += c;
-			}
+			} 
 			else if (c == '\n') firstLine = false;
 		}
 
@@ -46,11 +45,7 @@ const std::vector<std::string> ANIMALS = [](){
 }();
 
 class Creature{
-<<<<<<< HEAD
-public:
-=======
 private: 
->>>>>>> f4d551f (Removed test and added pong)
 	std::string type;
 public: 
 	Creature(std::string s){
@@ -71,47 +66,13 @@ public:
 	}
 };
 
-<<<<<<< HEAD
-Creature createCreature(std::string type){
-	/* 'type' must belong to ANIMALS */
-	for(std::string animal : ANIMALS)
-	if(type == animal) {
-		Creature someone; someone.type = type;
-		return someone;
-	};
-	error("'" + type + "' isn't a valid 'type'!\nNot a 'cowsay -f <paramether>'");
-}
-
-class Paddle{
-	int h = 5;
-	const int wall_space = 2, celling_space = 1;
-	char particle;
-	void draw(){
-	}
-};
-
-
-
-//int main void
-
-int main(){
-	try{
-		/* Program */
-		Creature Molly = createCreature("cow");
-		Creature Bob = createCreature("dragon");
-
-		/* SCENE: Molly and Bob greet */
-		Molly.says("Good morning");
-		Bob.says("I will kill you!");
-=======
 int main(){
 	try{ /* Program */
 		Creature Molly("cow"), Bob("dragon");
->>>>>>> f4d551f (Removed test and added pong)
 
 		/* Greetings */
-		Molly.says("Good morning!", 0.1);
-		Bob.says("I will kill you!", 0.1);
+		Molly.says("Good morning!");
+		Bob.says("I will kill you!");
 
 		/* Death scene */
 		runBash("cowsay -f dragon-and-cow DIE DIE DIE!");
