@@ -1,5 +1,6 @@
 #include <cstdio>
-#include <fstream>
+#include <termios.h>
+#include <unistd.h>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -95,10 +96,34 @@ public:
 	void move(int y, int x, Screen &win); // Write ball's new position
 };
 
-// TODO: Add something so that user doesn't need to press <Enter> to give input
+// Something that makes the user not have to press <Enter> to give input
+// To be honest, I don't know how it does it, neither understand anything in it, I got the solution online
+// TODO: Find out what is going on and why it works. Maybe it can be enhanced to not need to run getInput function
+// in a thread. If we take input consistanly, regardless if user type something or not, the task wouldn't need
+// to be performed aside
+int raw_getch(int fd) {
+    struct termios oldt, newt;
+    tcgetattr(fd, &oldt);
+    newt = oldt;
+
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(fd, TCSANOW, &newt);
+
+    char c;
+    read(fd, &c, 1);
+
+    tcsetattr(fd, TCSANOW, &oldt);
+    return c;
+}
+
+// Function to be ran in thread: Avoid freezing the game when waiting for input
+// TODO: Fix so that the last input is dominant. If you hold 'k' down and imediatly 
+// 	 after hold 'a' or 's' down, you will see that only the right paddle moves. Fix
+// 	 so that both move simultaniasly. (Maybe by using more threads? (。﹏。*) )
+// 	 Who would say that such a simple game would be so complex?!
 void getInput(std::string &s){
 	char c;
-	for(; std::cin>>c && c!='q'; std::cout<<"> ", s+=c);
+	for(; (c=raw_getch(0)) && c!='q'; std::cout<<"> ", s+=c);
 	s+=c;
 };
 
