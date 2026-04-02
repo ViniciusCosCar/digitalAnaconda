@@ -1,0 +1,44 @@
+#include "input.h"
+#include <string>
+using namespace std;
+
+// More macros on https://sourceforge.net/p/predef/wiki/OperatingSystems/
+#if defined _WIN32 || defined _WIN64
+#include <conio.h>
+// Get character input without pressing <Enter>
+void getInput(string& s){
+	char c;
+	for(; (c=_getch()) && c!='q'; s+=c);
+	s+=c;
+};
+#else 
+// For now, consider any other OS as Linux
+/* TODO: Use signals to restore terminal's old conditions in case of 
+ * an exit code flags, "https://en.wikipedia.org/wiki/ANSI_escape_code" */
+#include <termios.h> /* "https://www.ibm.com/docs/en/aix/7.3.0?topic=files-termiosh-file" or "man termios" */
+#include <unistd.h>
+
+// Get character input without pressing <Enter>
+int raw_getch(int fd) {
+	struct termios oldt, newt;
+	tcgetattr(fd, &oldt);
+	newt = oldt;
+
+	newt.c_lflag &= ~(ICANON | ECHO);
+	tcsetattr(fd, TCSANOW, &newt);
+
+	char c;
+	read(fd, &c, 1);
+
+	tcsetattr(fd, TCSANOW, &oldt);
+	return c;
+}
+/* Read input without waiting for <Enter>. Read each character and append to given string, until reachs "stop_key".
+ * Append "stop_key" if "include_stop_key" is true, default option */
+void getInput(string &s, char stop_key, bool include_stop_key=true){
+	char c;
+	for(; (c=raw_getch(0)) && c!=stop_key; s+=c);
+	if(include_stop_key) s+=c;
+};
+
+#endif

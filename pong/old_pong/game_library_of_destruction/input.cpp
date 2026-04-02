@@ -1,14 +1,12 @@
+#include "input.h"
 #include <string>
 using namespace std;
 
-#ifndef INPUT_H
-#define INPUT_H
-
-// Check out more macros on https://sourceforge.net/p/predef/wiki/OperatingSystems/
+// More macros on https://sourceforge.net/p/predef/wiki/OperatingSystems/
 #if defined _WIN32 || defined _WIN64
 #include <conio.h>
 // Get character input without pressing <Enter>
-void getInput(string &s){
+void getInput(string& s){
 	char c;
 	for(; (c=_getch()) && c!='q'; s+=c);
 	s+=c;
@@ -40,5 +38,4 @@ void getInput(string &s, char stop_key, bool include_stop_key=true){
 	for(; (c=raw_getch(0)) && c!='q'; s+=c);
 	if(include_stop_key) s+=c;
 };
-#endif
 #endif
