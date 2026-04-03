@@ -4,7 +4,7 @@
 
 // get raw character
 int raw_getch(int);
-// get <Enter>-less input until stop_key is pressed
+// <Enter>-less input
 void getInput(std::string&, char, bool);
 
 #endif

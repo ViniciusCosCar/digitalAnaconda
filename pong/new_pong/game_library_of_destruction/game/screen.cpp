@@ -88,7 +88,7 @@ bool Screen::clear(Pos pos){
 }
 // Print map
 void Screen::print(){
-	runBash("sleep " + to_string(FRAME_PERIOD) + " && clear");
+	runBash("sleep " + std::to_string(0.01) + " && clear");
 	for(unsigned int y=0; y<MAX_Y+2*BORDERS_WIDTH; y++){
 		for(unsigned int x=0; x<MAX_X+2*BORDERS_WIDTH; x++){
 			cout<<objectsSprites[map[y][x]];

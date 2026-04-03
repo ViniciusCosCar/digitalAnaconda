@@ -1,6 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include <vector>
 #define PIXEL_SIZE 20
 
 typedef char Sprite[PIXEL_SIZE];
@@ -47,7 +48,6 @@ public:
 	 * overriding it with the 'override' keyword. But what if I don't
 	 * have any function to override? It doesn't handle the case where
 	 * user might or might not define it! Maybe if the function was a variable? */
-	virtual void 		update		(CollisionInfo&, Screen&)	{}; // TODO: Modify
 	virtual void 		handleCollision	(CollisionInfo&, Screen&)	{}; // TODO: Modify
 	// Assuming no collision
 	virtual void 		writeToScreen	(Screen&)		= 0;
@@ -62,7 +62,6 @@ public:
 
 	CollisionInfo	getCollisionInfo(Screen&, Pos offset={0,0}) 	override;
 	// Assuming no collision
-	// void 		update		(CollisionInfo&, Screen&)	override;
 	void 		writeToScreen	(Screen&) 			override;
 	void 		clear		(Screen&)			override;
 	void 		moveInScreen	(Screen&, Pos offset)		override;
@@ -75,7 +74,6 @@ public:
 
 	CollisionInfo	getCollisionInfo(Screen&, Pos offset={0,0})	override;
 	// Assuming no collision
-	// void 		update		(CollisionInfo&, Screen&) 	override;
 	void 		writeToScreen	(Screen&)			override;
 	void 		clear		(Screen&)			override;
 	void 		moveInScreen	(Screen&, Pos offset)		override;
@@ -87,7 +85,6 @@ public:
 class Screen{
 public: 					     // ( For now, only works with BORDERS_WIDTH = 0 or 1 )
 	static constexpr int 	MAX_Y = 20, MAX_X = 50, BORDERS_WIDTH = 1;// Screen size 
-	const float 		FRAME_PERIOD = 0.01;
 
 	// Contains the sprite for each Object. NO_ONE and BORDER are defined at Screen's initialization,
 	// but others are defined only when their respective class is writen
@@ -105,6 +102,14 @@ public: 					     // ( For now, only works with BORDERS_WIDTH = 0 or 1 )
 	bool 		clear			(Pos);				// Clear past position. Set it to NO_ONE
 	void 		print			();				// Print map according to objectsSprite vector
 	CollisionInfo 	getCollisionInfo(Pos current_pos, Pos pos_offset={0,0});// Detect and provides information regarding collision
+};
+
+////// Game //////
+class Run{
+public:
+	const	float 	FRAME_PERIOD = 0.01;
+
+	void	loop(void (*function_ptr)(char));
 };
 
 #endif

@@ -18,12 +18,13 @@ GAME_DIR := $(LIB_DIR)/game
 
 # Source Files
 SRCS     := main.cpp \
-            $(LIB_DIR)/input.cpp \
-            $(LIB_DIR)/utils.cpp \
-            $(GAME_DIR)/ball.cpp \
-            $(GAME_DIR)/game_object.cpp \
-            $(GAME_DIR)/pallet.cpp \
-            $(GAME_DIR)/screen.cpp
+	    $(LIB_DIR)/input.cpp \
+	    $(LIB_DIR)/utils.cpp \
+	    $(GAME_DIR)/game_object.cpp \
+	    $(GAME_DIR)/ball.cpp \
+	    $(GAME_DIR)/pallet.cpp \
+	    $(GAME_DIR)/run.cpp	\
+	    $(GAME_DIR)/screen.cpp
 
 # Object Files (maps .cpp to .o)
 OBJS     := $(SRCS:.cpp=.o)

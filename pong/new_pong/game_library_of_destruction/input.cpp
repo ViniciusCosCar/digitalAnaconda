@@ -33,9 +33,10 @@ int raw_getch(int fd) {
 	tcsetattr(fd, TCSANOW, &oldt);
 	return c;
 }
+
 /* Read input without waiting for <Enter>. Read each character and append to given string, until reachs "stop_key".
  * Append "stop_key" if "include_stop_key" is true, default option */
-void getInput(string &s, char stop_key, bool include_stop_key=true){
+void getInput(std::string& s, char stop_key, bool include_stop_key=true){
 	char c;
 	for(; (c=raw_getch(0)) && c!=stop_key; s+=c);
 	if(include_stop_key) s+=c;
