@@ -4,18 +4,19 @@
 #include <iostream>
 using namespace std;
 ///////// Screen /////////
-Direction Screen::movementDirection(Pos offset){
+MovInfo Screen::getMovInfo(Pos offset){
 	int dy = offset.y;
 	int dx = offset.x;
 
-	if	( dy <  0 && dx == 0 )	return 	TOP;
-	else if	( dy >  0 && dx == 0 ) 	return	BOTTOM;
-	else if	( dy == 0 && dx <  0 )	return  LEFT;
-	else if	( dy == 0 && dx >  0 )	return  RIGHT;
-	else if	( dy <  0 && dx <  0 )	return 	TOP_LEFT;
-	else if	( dy <  0 && dx >  0 )	return	TOP_RIGHT;
-	else if	( dy >  0 && dx <  0 )	return	BOTTOM_LEFT;
-	else				return  BOTTOM_RIGHT;
+	if 	( dy == 0 && dx == 0 ) 	return 	{ UNDEFINED_DIRECTION,  UNDEFINED_SENSE	};
+	else if	( dy <  0 && dx == 0 )	return 	{ VERTICAL	     ,  TOP		};
+	else if	( dy >  0 && dx == 0 ) 	return	{ VERTICAL	     ,  BOTTOM		};
+	else if	( dy == 0 && dx <  0 )	return  { HORIZONTAL         ,  LEFT		};
+	else if	( dy == 0 && dx >  0 )	return  { HORIZONTAL	     ,  RIGHT		};
+	else if	( dy <  0 && dx <  0 )	return 	{ OBLIQUE            ,  TOP_LEFT	};
+	else if	( dy <  0 && dx >  0 )	return	{ OBLIQUE	     ,  TOP_RIGHT	};
+	else if	( dy >  0 && dx <  0 )	return	{ OBLIQUE	     ,  BOTTOM_LEFT	};
+	else				return  { OBLIQUE	     ,  BOTTOM_RIGHT	};
 }
 
 // Return information about collision in current and future position
@@ -25,28 +26,22 @@ CollisionInfo Screen::getCollisionInfo(Pos current_pos, Pos offset){
 
 	int y = current_pos.y;
 	int x = current_pos.x;
+
+	MovInfo velocityInfo = getMovInfo(offset);
 	
 	// Border collisions
-	if(y+dy < 0     ) 	return { TOP, BORDER };
-	if(y+dy >= MAX_Y) 	return { BOTTOM, BORDER };
-	if(x+dx < 0     ) 	return { LEFT, BORDER };
-	if(x+dx >= MAX_X) 	return { RIGHT, BORDER };
+	if( y+dy < 0 || y+dy >= MAX_Y || x+dx < 0 || x+dx >= MAX_X )
+		return { velocityInfo, BORDER };
 
-	// Object in intended position
-	Object target = map[y+dy+BORDERS_WIDTH][x+dx+BORDERS_WIDTH];
-
-	// No movement collision
-	if( dy == 0 && dx == 0 )	return { NONE, target };
-
-	// Movement
-	return { movementDirection(offset), target };
+	// Movement and target
+	return { velocityInfo, map[y+dy+BORDERS_WIDTH][x+dx+BORDERS_WIDTH] };
 }
 
 // Write object to screen if there is no collision. Returns "false" otherwise
 bool Screen::write(GameObject &obj){
 	CollisionInfo collision = obj.getCollisionInfo(*this);
 
-	if(collision.target != NO_ONE)	{
+	if(collision.target != NO_TARGET)	{
 		obj.handleCollision(collision, *this);
 		return false;
 	}
@@ -59,7 +54,7 @@ bool Screen::move(GameObject &obj, Pos offset){
 	CollisionInfo collision = obj.getCollisionInfo(*this, offset);
 
 	// Collision
-	if(collision.target != NO_ONE)	{ 
+	if(collision.target != NO_TARGET)	{ 
 		obj.handleCollision(collision, *this);
 		return false;
 	}
@@ -83,7 +78,7 @@ bool Screen::clear(Pos pos){
 		return false;
 	}
 	// Clear
-	map[y+BORDERS_WIDTH][x+BORDERS_WIDTH] = NO_ONE;
+	map[y+BORDERS_WIDTH][x+BORDERS_WIDTH] = NO_TARGET;
 	return true;
 }
 // Print map
@@ -111,11 +106,11 @@ void Screen::init(){
 	// Write background
 	for(int y=BORDERS_WIDTH; y<MAX_Y+BORDERS_WIDTH; y++)
 		for(int x=BORDERS_WIDTH; x<MAX_X+BORDERS_WIDTH; x++)
-			map[y][x] = NO_ONE;
+			map[y][x] = NO_TARGET;
 }
 // Default initializer
 Screen::Screen(){
-	strcpy(objectsSprites[NO_ONE], "🏁");
+	strcpy(objectsSprites[NO_TARGET], "🏁");
 	strcpy(objectsSprites[BORDER], "🔲");
 	init(); 
 }
@@ -124,7 +119,7 @@ Screen::Screen(const Sprite bgSprite, const Sprite bdSprite){
 	if(strlen(bgSprite)>PIXEL_SIZE || strlen(bdSprite)>PIXEL_SIZE)
 		error("At least one of given sprites exceed maximum pixel's length");
 
-	strcpy(objectsSprites[NO_ONE], bgSprite);
+	strcpy(objectsSprites[NO_TARGET], bgSprite);
 	strcpy(objectsSprites[BORDER], bdSprite);
 	init();
 }

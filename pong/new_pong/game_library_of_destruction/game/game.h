@@ -7,7 +7,14 @@
 typedef char Sprite[PIXEL_SIZE];
 
 enum Direction {
-		NONE,
+		UNDEFINED_DIRECTION, 
+		HORIZONTAL,
+		VERTICAL,
+		OBLIQUE,
+};
+
+enum Sense {
+		UNDEFINED_SENSE,
 		RIGHT,
 		LEFT,
 		TOP,
@@ -18,14 +25,20 @@ enum Direction {
 		BOTTOM_LEFT,
 				};
 enum Object {
-		NO_ONE,
+		NO_TARGET,
 		BORDER,
 		PALLET,
 		BALL,
 		N_OBJECTS,
 				};
-typedef struct {
+
+typedef struct{
 	Direction	direction;
+	Sense		sense;
+} MovInfo;
+
+typedef struct {
+	MovInfo 	movInfo;
 	Object 		target; 
 } CollisionInfo;
 
@@ -40,24 +53,23 @@ class Screen;
 class GameObject {
 public:
 	Pos velocity = {0,0};
+	// void handleCollision(void (*function_ptr)()=NULL);
+
+	void (*handleCollision_definition)() = NULL;
+	void  handleCollision	(CollisionInfo&, Screen&){ handleCollision_definition(); } ;
 
 	virtual CollisionInfo	getCollisionInfo(Screen&, Pos offset={0,0}) 	= 0;
-	/* Not so sure about defining update and handleCollion as virtuals.
-	 * It will be the base definition of the objects, but I if want to
-	 * define a different behavior, then I have to tell that I will be
-	 * overriding it with the 'override' keyword. But what if I don't
-	 * have any function to override? It doesn't handle the case where
-	 * user might or might not define it! Maybe if the function was a variable? */
-	virtual void 		handleCollision	(CollisionInfo&, Screen&)	{}; // TODO: Modify
+
 	// Assuming no collision
 	virtual void 		writeToScreen	(Screen&)		= 0;
 	virtual void 		clear		(Screen&)		= 0;
 	virtual void 		moveInScreen	(Screen&, Pos offset)	= 0;
 };
+
 class Pallet : public GameObject {
-	static int constexpr 	SIZE = 3;
 public:
 	Pallet			(Screen&, Pos pos, const Sprite sprite="⬜");
+	static int constexpr 	SIZE = 3;
 	Pos 			body[SIZE];
 
 	CollisionInfo	getCollisionInfo(Screen&, Pos offset={0,0}) 	override;
@@ -65,7 +77,7 @@ public:
 	void 		writeToScreen	(Screen&) 			override;
 	void 		clear		(Screen&)			override;
 	void 		moveInScreen	(Screen&, Pos offset)		override;
-	// void 		handleCollision	(CollisionInfo&, Screen&)	override;
+	// void 		handleCollision	(CollisionInfo&, Screen&)	{};
 };
 class Ball : public GameObject {
 public:
@@ -96,7 +108,7 @@ public: 					     // ( For now, only works with BORDERS_WIDTH = 0 or 1 )
 	Screen	();
 	Screen	(const Sprite bgSprite, const Sprite bdSprite);
 
-	Direction 	movementDirection	(Pos);				// Get movement direction
+	MovInfo 	getMovInfo		(Pos);				// Get movement direction
 	bool 		write			(GameObject& obj);		// "true" if successful to write game object
 	bool 		move			(GameObject& obj, Pos offset);	// "true" if successful to move game object
 	bool 		clear			(Pos);				// Clear past position. Set it to NO_ONE

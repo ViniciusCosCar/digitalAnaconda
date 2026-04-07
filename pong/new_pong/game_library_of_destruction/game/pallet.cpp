@@ -16,7 +16,7 @@ Pallet::Pallet(Screen& win, Pos pos, const Sprite sprite){
 
 // If a collision is found, immmediatly return colllion info. 
 CollisionInfo Pallet::getCollisionInfo(Screen& win, Pos offset) {
-	switch (win.movementDirection(offset)) {
+	switch (win.getMovInfo(offset).sense) {
 		case TOP:
 			return win.getCollisionInfo(body[0], offset);
 		case BOTTOM:
@@ -24,7 +24,7 @@ CollisionInfo Pallet::getCollisionInfo(Screen& win, Pos offset) {
 		default:
 			CollisionInfo collision;
 			for(Pos& e : body)
-				if((collision = win.getCollisionInfo(e, offset)).target != NO_ONE)
+				if((collision = win.getCollisionInfo(e, offset)).target != NO_TARGET)
 					break;
 			return collision;
 	}
@@ -37,7 +37,7 @@ void Pallet::writeToScreen(Screen& win){
 
 void Pallet::clear(Screen& win){
 	for(Pos& e : body)
-		win.map[e.y + win.BORDERS_WIDTH][e.x + win.BORDERS_WIDTH] = NO_ONE;
+		win.map[e.y + win.BORDERS_WIDTH][e.x + win.BORDERS_WIDTH] = NO_TARGET;
 }
 
 void Pallet::moveInScreen(Screen& win, Pos offset){

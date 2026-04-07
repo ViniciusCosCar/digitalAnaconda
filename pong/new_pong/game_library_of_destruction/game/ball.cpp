@@ -24,7 +24,7 @@ void Ball::writeToScreen(Screen& win){
 	win.map[body.y + win.BORDERS_WIDTH][body.x + win.BORDERS_WIDTH] = BALL;
 }
 void Ball::clear(Screen& win){
-	win.map[body.y + win.BORDERS_WIDTH][body.x + win.BORDERS_WIDTH] = NO_ONE;
+	win.map[body.y + win.BORDERS_WIDTH][body.x + win.BORDERS_WIDTH] = NO_TARGET;
 }
 
 void Ball::moveInScreen(Screen& win, Pos offset){
