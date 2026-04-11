@@ -4,42 +4,43 @@
 #include <vector>
 #define PIXEL_SIZE 20
 
+// The actual image of each game object
 typedef char Sprite[PIXEL_SIZE];
 
-enum Direction {
-		UNDEFINED_DIRECTION, 
-		HORIZONTAL,
-		VERTICAL,
-		OBLIQUE,
+// enums
+enum Horizontal {
+	NONE_X,
+	RIGHT,
+	LEFT,
+};
+enum Vertical {
+	NONE_Y,
+	UP,
+	DOWN,
 };
 
-enum Sense {
-		UNDEFINED_SENSE,
-		RIGHT,
-		LEFT,
-		TOP,
-		BOTTOM,
-		TOP_RIGHT,
-		TOP_LEFT,
-		BOTTOM_RIGHT,
-		BOTTOM_LEFT,
-				};
+
 enum Object {
-		NO_TARGET,
-		BORDER,
-		PALLET,
-		BALL,
-		N_OBJECTS,
-				};
+	NO_TARGET,
+	BORDER,
+	PALLET,
+	BALL,
+	N_OBJECTS,
+};
 
-typedef struct{
-	Direction	direction;
-	Sense		sense;
-} MovInfo;
-
+// Collision related structs
+struct Direction{
+	Vertical   y = NONE_Y;
+	Horizontal x = NONE_X;
+};
+struct Target {
+	Object y  =  NO_TARGET;
+	Object x  =  NO_TARGET;
+	Object yx =  NO_TARGET;
+};
 typedef struct {
-	MovInfo 	movInfo;
-	Object 		target; 
+	Direction 	direction;
+	Target 		target; 
 } CollisionInfo;
 
 /////// Pos /////////
@@ -49,78 +50,92 @@ typedef struct {
 } Pos;
 
 ////// GameObjects /////////
-class Screen;
-class GameObject {
+class Window;
+#include "../utils.h"
+class GameObject { // Abstract class
 public:
+
+	// Collision handling methods - User defined
+	void (*handleCollision_def)(CollisionInfo&) = [](CollisionInfo&){}; // Pointer to function to be executed
+	void  handleCollision(CollisionInfo& collision, Window&){ handleCollision_def(collision); };
+
 	Pos velocity = {0,0};
-	// void handleCollision(void (*function_ptr)()=NULL);
 
-	void (*handleCollision_definition)() = NULL;
-	void  handleCollision	(CollisionInfo&, Screen&){ handleCollision_definition(); } ;
+	// Collision detection returning related information
+	virtual CollisionInfo	getCollisionInfo(Window&, Pos offset={0,0}) 	= 0;
 
-	virtual CollisionInfo	getCollisionInfo(Screen&, Pos offset={0,0}) 	= 0;
-
-	// Assuming no collision
-	virtual void 		writeToScreen	(Screen&)		= 0;
-	virtual void 		clear		(Screen&)		= 0;
-	virtual void 		moveInScreen	(Screen&, Pos offset)	= 0;
+	// Called when Window finds no collision
+	virtual void 		writeToWindow	(Window&)		= 0;
+	virtual void 		clear		(Window&)		= 0;
+	virtual void 		moveInWindow	(Window&, Pos offset)	= 0;
 };
 
 class Pallet : public GameObject {
 public:
-	Pallet			(Screen&, Pos pos, const Sprite sprite="⬜");
+	Pallet			(Window&, Pos pos, const Sprite sprite="⬜");
 	static int constexpr 	SIZE = 3;
 	Pos 			body[SIZE];
 
-	CollisionInfo	getCollisionInfo(Screen&, Pos offset={0,0}) 	override;
+	CollisionInfo	getCollisionInfo(Window&, Pos offset={0,0}) 	override;
+	
 	// Assuming no collision
-	void 		writeToScreen	(Screen&) 			override;
-	void 		clear		(Screen&)			override;
-	void 		moveInScreen	(Screen&, Pos offset)		override;
-	// void 		handleCollision	(CollisionInfo&, Screen&)	{};
+	void 		writeToWindow	(Window&) 			override;
+	void 		clear		(Window&)			override;
+	void 		moveInWindow	(Window&, Pos offset)		override;
 };
+
 class Ball : public GameObject {
 public:
-	Ball				(Screen&, Pos pos, const Sprite sprite="🟡");
+	Ball				(Window&, Pos pos, const Sprite sprite="🟡");
 	Pos body;
 
-	CollisionInfo	getCollisionInfo(Screen&, Pos offset={0,0})	override;
+	CollisionInfo	getCollisionInfo(Window&, Pos offset={0,0})	override;
+	
 	// Assuming no collision
-	void 		writeToScreen	(Screen&)			override;
-	void 		clear		(Screen&)			override;
-	void 		moveInScreen	(Screen&, Pos offset)		override;
-	// void 		handleCollision	(CollisionInfo&, Screen&)	override;
+	void 		writeToWindow	(Window&)			override;
+	void 		clear		(Window&)			override;
+	void 		moveInWindow	(Window&, Pos offset)		override;
 };
 
-////// Screen /////////
-/* TODO: Update window only when detect movement */
-class Screen{
-public: 					     // ( For now, only works with BORDERS_WIDTH = 0 or 1 )
-	static constexpr int 	MAX_Y = 20, MAX_X = 50, BORDERS_WIDTH = 1;// Screen size 
+////// Window /////////
+/* TODO: Update window only when detect movement 
+ * TODO: Add a responsive design (probably one of the most hard/laborous TODOs )*/
+class Window{
+public:
+	static constexpr int MAX_Y = 20, MAX_X = 50; 	// Window's size 
+	static constexpr int BORDERS_WIDTH = 1; 	// For now, only works with BORDERS_WIDTH = 0 or 1
 
-	// Contains the sprite for each Object. NO_ONE and BORDER are defined at Screen's initialization,
-	// but others are defined only when their respective class is writen
-	Sprite 	objectsSprites	[N_OBJECTS];
-	Object 	map		[MAX_Y+2*BORDERS_WIDTH][MAX_X+2*BORDERS_WIDTH];
+	// Map
+	Sprite objectsSprites[N_OBJECTS]; // Sprites related to each game object
+	Object map[MAX_Y+2*BORDERS_WIDTH][MAX_X+2*BORDERS_WIDTH]; // Actual window
 
-	// Fill map
+	// "Constructor" related
 	void 	init();
-	Screen	();
-	Screen	(const Sprite bgSprite, const Sprite bdSprite);
+	Window	();
+	Window	(const Sprite bgSprite, const Sprite bdSprite);
 
-	MovInfo 	getMovInfo		(Pos);				// Get movement direction
-	bool 		write			(GameObject& obj);		// "true" if successful to write game object
-	bool 		move			(GameObject& obj, Pos offset);	// "true" if successful to move game object
-	bool 		clear			(Pos);				// Clear past position. Set it to NO_ONE
-	void 		print			();				// Print map according to objectsSprite vector
-	CollisionInfo 	getCollisionInfo(Pos current_pos, Pos pos_offset={0,0});// Detect and provides information regarding collision
+	// TODO: Deconstructor
+	
+	// "Write" related
+	bool 	write	(GameObject& obj);
+	bool 	move	(GameObject& obj, Pos offset);
+	bool 	clear	(Pos);
+
+	// Detect collisions in window
+	CollisionInfo getCollisionInfo(Pos current_pos, Pos pos_offset={0,0});
+	// Find direction of movement
+	Direction findDirection(Pos);
+	
+	// Print map's sprites
+	void print();
 };
 
 ////// Game //////
 class Run{
 public:
-	const	float 	FRAME_PERIOD = 0.01;
+	constexpr static float FRAME_PERIOD = 0.01;
 
+	// Update frame respecting desired frame period
 	void	loop(void (*function_ptr)(char));
 };
 

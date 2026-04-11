@@ -1,10 +1,9 @@
 #include "game.h"
 #include "../utils.h"
 #include <cstring>
-#include <iostream>
 
 ///////// Ball /////////
-Ball::Ball(Screen &win, Pos pos, const Sprite sprite){
+Ball::Ball(Window &win, Pos pos, const Sprite sprite){
 	if(!(pos.y >= 0 && pos.y < win.MAX_Y && pos.x >= 0 && pos.x < win.MAX_X))
 		error("Trying to write Ball outside of screen's map");
 	body.y = pos.y;
@@ -13,25 +12,25 @@ Ball::Ball(Screen &win, Pos pos, const Sprite sprite){
 }
 
 // Get information about collision after offset({0,0} as default)
-CollisionInfo Ball::getCollisionInfo(Screen &win, Pos offset) {
+CollisionInfo Ball::getCollisionInfo(Window &win, Pos d) {
 	return win.getCollisionInfo(
 		{body.y, body.x},
-			offset
+			d
 	);
 }
 // Assuming no collision, write object to map
-void Ball::writeToScreen(Screen& win){
+void Ball::writeToWindow(Window& win){
 	win.map[body.y + win.BORDERS_WIDTH][body.x + win.BORDERS_WIDTH] = BALL;
 }
-void Ball::clear(Screen& win){
+void Ball::clear(Window& win){
 	win.map[body.y + win.BORDERS_WIDTH][body.x + win.BORDERS_WIDTH] = NO_TARGET;
 }
 
-void Ball::moveInScreen(Screen& win, Pos offset){
+void Ball::moveInWindow(Window& win, Pos d){
 	// Write to map
-	win.map[body.y + offset.y + win.BORDERS_WIDTH][body.x + offset.x + win.BORDERS_WIDTH] = BALL;
+	win.map[body.y + d.y + win.BORDERS_WIDTH][body.x + d.x + win.BORDERS_WIDTH] = BALL;
 	
 	// Update position
-	body.y += offset.y;
-	body.x += offset.x;
+	body.y += d.y;
+	body.x += d.x;
 }

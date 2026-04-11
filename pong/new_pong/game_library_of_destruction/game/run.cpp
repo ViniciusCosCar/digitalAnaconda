@@ -5,8 +5,15 @@
 #include "../input.h"
 
 /* TODO: 
- * 	Add FRAME_PERIOD delay between player's code function calls.
- * 	Also, synchronous input? An important question to answer!
+ * 	Add FRAME_PERIOD delay between player's code function calls
+ *
+ * 	Synchronous input? An important question to answer!
+ *
+ * 	How can we handle multpile inputs simultaneasly?
+ * 		For example, what if the person types "a" and
+ * 		"s" simultaneasly, is the current code correctly
+ * 		handling this situation? I don't think so. But how
+ * 		can we improve it?
  * */
 void Run::loop(void (*function_ptr)(char)){
 

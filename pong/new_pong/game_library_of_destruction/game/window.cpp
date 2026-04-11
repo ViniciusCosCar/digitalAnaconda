@@ -3,72 +3,80 @@
 #include <cstring>
 #include <iostream>
 using namespace std;
-///////// Screen /////////
-MovInfo Screen::getMovInfo(Pos offset){
-	int dy = offset.y;
-	int dx = offset.x;
-
-	if 	( dy == 0 && dx == 0 ) 	return 	{ UNDEFINED_DIRECTION,  UNDEFINED_SENSE	};
-	else if	( dy <  0 && dx == 0 )	return 	{ VERTICAL	     ,  TOP		};
-	else if	( dy >  0 && dx == 0 ) 	return	{ VERTICAL	     ,  BOTTOM		};
-	else if	( dy == 0 && dx <  0 )	return  { HORIZONTAL         ,  LEFT		};
-	else if	( dy == 0 && dx >  0 )	return  { HORIZONTAL	     ,  RIGHT		};
-	else if	( dy <  0 && dx <  0 )	return 	{ OBLIQUE            ,  TOP_LEFT	};
-	else if	( dy <  0 && dx >  0 )	return	{ OBLIQUE	     ,  TOP_RIGHT	};
-	else if	( dy >  0 && dx <  0 )	return	{ OBLIQUE	     ,  BOTTOM_LEFT	};
-	else				return  { OBLIQUE	     ,  BOTTOM_RIGHT	};
-}
+///////// Window /////////
 
 // Return information about collision in current and future position
-CollisionInfo Screen::getCollisionInfo(Pos current_pos, Pos offset){
-	int dy = offset.y;
-	int dx = offset.x;
-
+CollisionInfo Window::getCollisionInfo(Pos current_pos, Pos d){
 	int y = current_pos.y;
 	int x = current_pos.x;
 
-	MovInfo velocityInfo = getMovInfo(offset);
-	
-	// Border collisions
-	if( y+dy < 0 || y+dy >= MAX_Y || x+dx < 0 || x+dx >= MAX_X )
-		return { velocityInfo, BORDER };
+	Direction direction; 	// Default = No direction
+	Target target;		// Default = No target
 
-	// Movement and target
-	return { velocityInfo, map[y+dy+BORDERS_WIDTH][x+dx+BORDERS_WIDTH] };
+	// Oblique movement
+	if(d.y*d.x != 0){ 
+		// Oblique collision
+		target.yx = map[y+d.y+BORDERS_WIDTH][x+d.x+BORDERS_WIDTH];
+		// Vertical and horizontal collision
+		if((target.y = map[y+d.y+BORDERS_WIDTH][x+BORDERS_WIDTH])!=NO_TARGET) direction.y = (d.y>0)?DOWN:UP;
+		if((target.x = map[y+BORDERS_WIDTH][x+d.x+BORDERS_WIDTH])!=NO_TARGET) direction.x = (d.x>0)?RIGHT:LEFT;
+		return { direction, target };
+	}
+
+	// Horizontal movement
+	if(d.y == 0 && d.x != 0){
+		if((target.x = map[y+BORDERS_WIDTH][x+d.x+BORDERS_WIDTH])!=NO_TARGET)
+			direction.x = (d.x>0)?RIGHT:LEFT;
+		return { direction, target };
+	}
+
+	// Vertical movement
+	if(d.y != 0 && d.x == 0){
+		if((target.y = map[y+d.y+BORDERS_WIDTH][x+BORDERS_WIDTH])!=NO_TARGET)
+			direction.y = (d.y>0)?DOWN:UP;
+		return { direction, target };
+	}
+
+	// When placing object
+	return { direction,  map[y+BORDERS_WIDTH][x+BORDERS_WIDTH] };
 }
 
 // Write object to screen if there is no collision. Returns "false" otherwise
-bool Screen::write(GameObject &obj){
+bool Window::write(GameObject &obj){
 	CollisionInfo collision = obj.getCollisionInfo(*this);
 
-	if(collision.target != NO_TARGET)	{
+	if(collision.target.yx != NO_TARGET) {
 		obj.handleCollision(collision, *this);
 		return false;
 	}
 
-	obj.writeToScreen(*this);
+	obj.writeToWindow(*this);
 	return true;
 }
 
-bool Screen::move(GameObject &obj, Pos offset){
-	CollisionInfo collision = obj.getCollisionInfo(*this, offset);
+// Move object if no colllision, return false otherwise
+bool Window::move(GameObject &obj, Pos d){
+	CollisionInfo collision = obj.getCollisionInfo(*this, d);
 
 	// Collision
-	if(collision.target != NO_TARGET)	{ 
+	if(collision.target.yx != NO_TARGET || 
+	   collision.target.y  != NO_TARGET || 
+	   collision.target.x  != NO_TARGET) {
 		obj.handleCollision(collision, *this);
 		return false;
 	}
 	// No collision
 
 	// Clear object last position
-	if(offset.y != 0 || offset.x != 0) 
+	if(d.y != 0 || d.x != 0) 
 		obj.clear(*this);
 
-	obj.moveInScreen(*this, offset);
+	obj.moveInWindow(*this, d);
 	return true;
 }
 
-bool Screen::clear(Pos pos){
+// For now, crashes the game if position is invalid
+bool Window::clear(Pos pos){
 	int y = pos.y;
 	int x = pos.x;
 
@@ -82,7 +90,7 @@ bool Screen::clear(Pos pos){
 	return true;
 }
 // Print map
-void Screen::print(){
+void Window::print(){
 	runBash("sleep " + std::to_string(0.01) + " && clear");
 	for(unsigned int y=0; y<MAX_Y+2*BORDERS_WIDTH; y++){
 		for(unsigned int x=0; x<MAX_X+2*BORDERS_WIDTH; x++){
@@ -91,9 +99,8 @@ void Screen::print(){
 		cout<<endl;
 	}
 }
-
 // Initialize map with borders and background sprites
-void Screen::init(){
+void Window::init(){
 	// Write borders
 	for(int x = 0; x < MAX_X+2*BORDERS_WIDTH; x++){
 		map[0][x] = BORDER;
@@ -109,13 +116,13 @@ void Screen::init(){
 			map[y][x] = NO_TARGET;
 }
 // Default initializer
-Screen::Screen(){
+Window::Window(){
 	strcpy(objectsSprites[NO_TARGET], "🏁");
 	strcpy(objectsSprites[BORDER], "🔲");
 	init(); 
 }
 // Initialize with given sprites for background and borders
-Screen::Screen(const Sprite bgSprite, const Sprite bdSprite){
+Window::Window(const Sprite bgSprite, const Sprite bdSprite){
 	if(strlen(bgSprite)>PIXEL_SIZE || strlen(bdSprite)>PIXEL_SIZE)
 		error("At least one of given sprites exceed maximum pixel's length");
 

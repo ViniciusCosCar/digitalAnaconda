@@ -24,7 +24,7 @@ SRCS     := main.cpp \
 	    $(GAME_DIR)/ball.cpp \
 	    $(GAME_DIR)/pallet.cpp \
 	    $(GAME_DIR)/run.cpp	\
-	    $(GAME_DIR)/screen.cpp
+	    $(GAME_DIR)/window.cpp
 
 # Object Files (maps .cpp to .o)
 OBJS     := $(SRCS:.cpp=.o)
