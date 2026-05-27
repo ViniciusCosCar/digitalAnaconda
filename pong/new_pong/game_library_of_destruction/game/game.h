@@ -19,7 +19,6 @@ enum Vertical {
 	DOWN,
 };
 
-
 enum Object {
 	NO_TARGET,
 	BORDER,
@@ -95,6 +94,12 @@ public:
 	void 		writeToWindow	(Window&)			override;
 	void 		clear		(Window&)			override;
 	void 		moveInWindow	(Window&, Pos offset)		override;
+};
+
+////// Label //////
+/* TODO: Add a responsive design */
+class Label{
+public:
 };
 
 ////// Window /////////
